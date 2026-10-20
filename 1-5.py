@@ -115,7 +115,11 @@ def get_eigenvalues(A):
             c, d = A[i + 1][i], A[i + 1][i + 1]
             tr = a + d
             det = a * d - b * c
-            disc = cmath.sqrt(tr * tr / 4 - det)
+            d2 = tr * tr / 4 - det
+            if d2 >= 0:
+                disc = math.sqrt(d2)
+            else:
+                disc = cmath.sqrt(d2)
             values.append(tr / 2 + disc)
             values.append(tr / 2 - disc)
             i += 2
