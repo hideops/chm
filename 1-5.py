@@ -1,8 +1,9 @@
 import math
+import cmath
+import numpy as np
 from tt1 import multiplicate
 eps = 0.01
 max_iteration = 1000
-
 
 def read_file(file = "input.txt"):
     with open(file, 'r', encoding="utf-8") as f:
@@ -16,7 +17,6 @@ def read_file(file = "input.txt"):
         matrix.append(list(map(float, lines[i].split())))
     A = matrix
     return A
-
 
 def transponate(A):
     n = len(A)
@@ -88,57 +88,103 @@ def diagonal_sum(A):
             result += abs(A[i][j])
     return result
 
+def below_subdiagonal_sum(A):
+    n = len(A)
+    result = 0
+    for i in range(n):
+        for j in range(i - 1):
+            result += abs(A[i][j])
+    return result
+
+def is_converged(A):
+    n = len(A)
+    if below_subdiagonal_sum(A) > eps:
+        return False
+    for i in range(n - 2):
+        if abs(A[i + 1][i]) > eps and abs(A[i + 2][i + 1]) > eps:
+            return False
+    return True
+
+def get_eigenvalues(A):
+    n = len(A)
+    values = []
+    i = 0
+    while i < n:
+        if i < n - 1 and abs(A[i + 1][i]) > eps:
+            a, b = A[i][i], A[i][i + 1]
+            c, d = A[i + 1][i], A[i + 1][i + 1]
+            tr = a + d
+            det = a * d - b * c
+            disc = cmath.sqrt(tr * tr / 4 - det)
+            values.append(tr / 2 + disc)
+            values.append(tr / 2 - disc)
+            i += 2
+        else:
+            values.append(A[i][i])
+            i += 1
+    return values
+
 def qr_find(A):
-    A_prev = A.copy()
+    A_prev = [row.copy() for row in A]
     iteration = 0
-    while diagonal_sum(A_prev) > eps and iteration < max_iteration:
+    while not is_converged(A_prev) and iteration < max_iteration:
         Q = get_q(A_prev)
         R = get_r(Q, A_prev)
         A_new = multiplicate(R, Q)
         A_prev = A_new
         iteration += 1
-    if diagonal_sum(A_prev) > eps:
+    if not is_converged(A_prev):
         print("алгоритм не работает")
     for row in A_prev:
         print(row)
-    self_value = []
-    for i in range(len(A_prev)):
-        self_value.append(A_prev[i][i])
+    self_value = get_eigenvalues(A_prev)
     return self_value
+
+def complex_example():
+    A = [[1.0, -2.0, 1.0],
+         [2.0, 1.0, 3.0],
+         [0.0, 0.0, 3.0]]
+    print("A:")
+    for row in A:
+        print(row)
+    Q = get_q(A)
+    R = get_r(Q, A)
+    print("Q:")
+    for row in Q:
+        print(row)
+    print("R:")
+    for row in R:
+        print(row)
+    print("Q*R:")
+    for row in qr(Q, R):
+        print(row)
+    print(check_qr(Q, R, A))
+    values = qr_find(A)
+    print(values)
+    np_values = np.linalg.eigvals(np.array(A))
+    print(np_values)
+
 
 def main():
     A = read_file()
     Q = get_q(A)
     R = get_r(Q, A)
-
     print("A:")
     for row in A:
         print(row)
-
     print("Q:")
     for row in Q:
         print(row)
-
     print("R:")
     for row in R:
         print(row)
-
+    print("Q * R:")
+    for row in qr(Q, R):
+        print(row)
     print(check_qr(Q, R, A))
-
     eigenvalues = qr_find(A)
-
-    print("Собственные значения:")
+    print("сз:")
     print(eigenvalues)
-
+    complex_example()
 
 main()
-
-
-
-
-
-
-
-
-
-
